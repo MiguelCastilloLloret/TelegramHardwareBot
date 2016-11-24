@@ -92,7 +92,7 @@ def command_reviews(m):
 
 mi_bot.set_update_listener(listener)
 
-mi_bot.polling()
+mi_bot.polling(none_stop=True)
 
 while True:
 	pass
