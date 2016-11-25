@@ -17,7 +17,20 @@ def listener(mensajes):
 @mi_bot.message_handler(commands=['help'])
 def command_reviews(m):
 	chat_id = m.chat.id
-	mi_bot.send_message(chat_id, "Hi!, I am HardwareBot, nice to meet you! If you want general info of a Graphics Card, ask me with /GPUInfo + card name. For CPUs, say /CPUInfo + CPU Name. If you want a GPU review list, ask /reviewsGPUNVIDIA + GPU Name or /reviewsGPUAMD + GPU Name. Hope I can help you!")
+	mi_bot.send_message(chat_id, "Hi!, I am HardwareBot, nice to meet you! If you want general info of a Graphics Card, ask me with /GPUInfo + card name. For CPUs, say /CPUInfo + CPU Name. If you want a GPU review list, ask /reviewsGPUNVIDIA + GPU Name or /reviewsGPUAMD + GPU Name. I also can give you the latest hardware news with /hardwareNews ! Hope I can help you!")
+
+@mi_bot.message_handler(commands=['hardwareNews'])
+def command_reviews(m):
+	chat_id = m.chat.id
+	response = ""
+	reviewsweb = BeautifulSoup(urlopen("http://wccftech.com/topic/hardware/"))
+	tags = reviewsweb.find_all("a", class_="featured")
+	print(type(tags))
+	for aTag in tags:
+		urlTag = aTag['href']
+		print(urlTag)
+		response = response + aTag.contents[3].contents[1].string + "\n" + urlTag + "\n\n"
+	mi_bot.send_message(chat_id, response)
 
 @mi_bot.message_handler(commands=['reviewsGPUAMD'])
 def command_reviews(m):
@@ -112,11 +125,12 @@ def command_reviews(m):
 		except Exception:
 			mi_bot.send_message(chat_id, "Not CPUs match with the name you gave :(")
 			response = ""
-		img = reviewsweb.find("img", class_="cpulogo")
-		urlretrieve("http:" + img['src'],"a.gif")
+		img = reviewsweb.find("img", class_="cpulogo")	
+		if img is not None and img['src'] is not None and img['src'] != "":
+			urlretrieve("http:" + img['src'],"a.gif")
+			mi_bot.send_photo(chat_id, open('a.gif','rb'))
 		mi_bot.send_message(chat_id, response)
 		response = ""
-		mi_bot.send_photo(chat_id, open('a.gif','rb'))
 		trTags = reviewsweb.find_all("tr")
 		print(trTags)
 		for tcTag in trTags:
@@ -145,11 +159,12 @@ def command_reviews(m):
 	message = m.text[9:]
 	if message != "":
 		response = "Info about " + message + ":\n"
-		reviewsweb = BeautifulSoup(urlopen("https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=nvidia&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q="))
+		reviewsweb = BeautifulSoup(urlopen("https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=nvidia&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=name&q="))
 		tags = reviewsweb.find_all("a")
 		print(type(tags))
 		expresion = re.compile("\D*?"+message)
 		for aTag in tags:
+			print(aTag.string)
 			if aTag.string is not None and expresion.match(aTag.string):
 				print(aTag.string)
 				urlTag = aTag['href']
@@ -161,7 +176,7 @@ def command_reviews(m):
 			mi_bot.send_message(chat_id, "Not GPUs match with the name you gave :(")
 			response = ""
 		img = reviewsweb.find("img", title="Card Photo")
-		if img is not None:
+		if img is not None and img['src'] is not None and img['src'] != "":
 			urlretrieve("https://www.techpowerup.com" + img['src'],"a.jpg")
 			mi_bot.send_photo(chat_id, open('a.jpg','rb'))
 		mi_bot.send_message(chat_id, response)
